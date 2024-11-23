@@ -1,0 +1,244 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>br.com.fiap</groupId>
+    <artifactId>eco-tech-api</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+
+package br.com.fiap.ecotech;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class EcoTechApiApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(EcoTechApiApplication.class, args);
+    }
+}
+
+package br.com.fiap.ecotech.model;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.validation.constraints.NotNull;
+
+@Entity
+public class ProjetoSustentavel {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotNull
+    private String descricao;
+
+    @NotNull
+    private Double custo;
+
+    @NotNull
+    private String tipoFonte;
+
+    public ProjetoSustentavel() {}
+
+    public ProjetoSustentavel(String descricao, Double custo, String tipoFonte) {
+        this.descricao = descricao;
+        this.custo = custo;
+        this.tipoFonte = tipoFonte;
+    }
+
+    // Getters e Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
+    }
+
+    public Double getCusto() {
+        return custo;
+    }
+
+    public void setCusto(Double custo) {
+        this.custo = custo;
+    }
+
+    public String getTipoFonte() {
+        return tipoFonte;
+    }
+
+    public void setTipoFonte(String tipoFonte) {
+        this.tipoFonte = tipoFonte;
+    }
+}
+
+package br.com.fiap.ecotech.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import br.com.fiap.ecotech.model.ProjetoSustentavel;
+
+@Repository
+public interface ProjetoSustentavelRepository extends JpaRepository<ProjetoSustentavel, Long> {
+}
+package br.com.fiap.ecotech.service;
+
+import br.com.fiap.ecotech.model.ProjetoSustentavel;
+import br.com.fiap.ecotech.repository.ProjetoSustentavelRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class ProjetoSustentavelService {
+
+    @Autowired
+    private ProjetoSustentavelRepository projetoSustentavelRepository;
+
+    public List<ProjetoSustentavel> getAllProjetos() {
+        return projetoSustentavelRepository.findAll();
+    }
+
+    public ProjetoSustentavel getProjetoById(Long id) {
+        return projetoSustentavelRepository.findById(id).orElse(null);
+    }
+
+    public ProjetoSustentavel createProjeto(ProjetoSustentavel projeto) {
+        return projetoSustentavelRepository.save(projeto);
+    }
+
+    public void deleteProjeto(Long id) {
+        projetoSustentavelRepository.deleteById(id);
+    }
+
+    public ProjetoSustentavel updateProjeto(Long id, ProjetoSustentavel projeto) {
+        if (projetoSustentavelRepository.existsById(id)) {
+            projeto.setId(id);
+            return projetoSustentavelRepository.save(projeto);
+        }
+        return null;
+    }
+}
+package br.com.fiap.ecotech.controller;
+
+import br.com.fiap.ecotech.model.ProjetoSustentavel;
+import br.com.fiap.ecotech.service.ProjetoSustentavelService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/projetos")
+public class ProjetoSustentavelController {
+
+    @Autowired
+    private ProjetoSustentavelService projetoSustentavelService;
+
+    @GetMapping
+    public List<ProjetoSustentavel> getAllProjetos() {
+        return projetoSustentavelService.getAllProjetos();
+    }
+
+    @GetMapping("/{id}")
+    public ProjetoSustentavel getProjetoById(@PathVariable Long id) {
+        return projetoSustentavelService.getProjetoById(id);
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ProjetoSustentavel createProjeto(@RequestBody ProjetoSustentavel projeto) {
+        return projetoSustentavelService.createProjeto(projeto);
+    }
+
+    @PutMapping("/{id}")
+    public ProjetoSustentavel updateProjeto(@PathVariable Long id, @RequestBody ProjetoSustentavel projeto) {
+        return projetoSustentavelService.updateProjeto(id, projeto);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteProjeto(@PathVariable Long id) {
+        projetoSustentavelService.deleteProjeto(id);
+    }
+}
+spring.datasource.url=jdbc:h2:mem:testdb
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=password
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+spring.jpa.hibernate.ddl-auto=update
+server.port=8080
+package br.com.fiap.ecotech.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+public class CorsConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("*")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true);
+    }
+}
